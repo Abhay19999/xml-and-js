@@ -27,6 +27,7 @@ const getGenres = async (token) => {
   );
 
   const data = await result.json();
+  console.log(data);
   return data.categories.items;
 };
 
@@ -42,14 +43,14 @@ const getPlaylistByGenre = async (token, genreId) => {
   );
 
   const data = await result.json();
-  // console.log(data);
+  //   console.log(data);
   return data.playlists.items;
 };
 
 const loadGenres = async () => {
   const token = await getToken();
   const genres = await getGenres(token);
-  // console.log(genres);
+  console.log(genres);
 
   _data = await Promise.all(
     genres.map(async (genre) => {
@@ -62,6 +63,11 @@ const loadGenres = async () => {
 
 const renderGenres = (filterTerm) => {
   let source = _data;
+  const hideEmptyGenre = document.getElementById("with");
+  const without = document.getElementById("without");
+
+  console.log(source);
+  //   console.log(hideEmptyGenre);
   if (filterTerm) {
     console.log(filterTerm);
     const term = filterTerm.toLowerCase();
@@ -70,7 +76,14 @@ const renderGenres = (filterTerm) => {
       return name.toLowerCase().includes(term);
     });
   }
-
+  if (hideEmptyGenre.checked) {
+    source = source.filter((obj) => {
+      if (obj.playlists.length !== 0) return obj;
+    });
+    console.log(source);
+  }
+  if (without.checked) {
+  }
   const list = document.getElementById(`genres`);
   const html = source.reduce((acc, { name, icons: [icons], playlists }) => {
     const playlistsList = playlists
@@ -83,7 +96,8 @@ const renderGenres = (filterTerm) => {
       </li>`
       )
       .join(``);
-    if (playlists) {
+
+    if (!without.checked) {
       return (
         acc +
         `<article class="genre-card">
@@ -98,6 +112,19 @@ const renderGenres = (filterTerm) => {
               </div>
             </article>`
       );
+    } else {
+      return (
+        acc +
+        `<article class="genre-card">
+            <div class="main-image">
+              <img class = "cat-img" src="${icons.url}" alt="${name}"/>
+              </div>
+              <div class="list">
+                <h2>${name}</h2>
+               
+              </div>
+            </article>`
+      );
     }
   }, ``);
   list.innerHTML = html;
@@ -107,8 +134,12 @@ loadGenres().then(renderGenres);
 const onSubmit = (event) => {
   event.preventDefault();
   const term = event.target.term.value;
+
   renderGenres(term);
 };
 const onReset = () => {
   renderGenres();
+};
+openList = (element) => {
+  element.classList.toggle("hide");
 };
